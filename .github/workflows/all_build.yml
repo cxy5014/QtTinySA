@@ -1,0 +1,132 @@
+name: Build QtTinySA on macOS
+on: 
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  Build-Arm64-version:
+    name: Build QtTinySA on macOS for Apple Silicon
+    runs-on: macos-14
+    env:
+      KEYCHAIN: job-${{ github.job }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python Dependence
+        run: pip install -r requirements.txt
+
+      - name: Build QtTinySA
+        run: pyinstaller --clean --noconfirm QtTinySA.spec
+
+      - name: Install Certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with: 
+          keychain: ${{ env.KEYCHAIN }}
+          p12-file-base64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.P12_PASSWORD }}
+          
+      - name: Codesign
+        env:
+          CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
+        run: |
+          codesign --timestamp --options=runtime -s "$CERTIFICATE_NAME" -v dist/QtTinySA.app  -f --deep
+      
+      - name: Package
+        run: |
+          brew install create-dmg
+          mkdir QtTinySA
+          ditto dist/QtTinySA.app QtTinySA/QtTinySA.app
+          ln -s /Applications QtTinySA/Applications
+          create-dmg QtTinySA-arm64.dmg QtTinySA
+
+      - name: Apple Notary
+        env:
+          CODESIGN_IDENT_USER: ${{ secrets.CODESIGN_IDENT_USER }}
+          CODESIGN_TEAM: ${{ secrets.CODESIGN_TEAM }}
+          CODESIGN_IDENT_PASS: ${{ secrets.CODESIGN_IDENT_PASS }}
+        run: |
+          xcrun notarytool store-credentials 'QtTinySA-Codesign-Password' --apple-id "${CODESIGN_IDENT_USER}" --team-id "${CODESIGN_TEAM}" --password "${CODESIGN_IDENT_PASS}"
+          xcrun notarytool submit "QtTinySA-arm64.dmg" --keychain-profile "QtTinySA-Codesign-Password" --wait
+          xcrun stapler staple QtTinySA-arm64.dmg
+
+      - name: Upload
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: QtTinySA-arm64.dmg
+          draft: false
+      
+      - name: Delete keychain
+        if: always()
+        run: |
+          security delete-keychain "${{ env.KEYCHAIN }}".keychain
+
+  Build-amd64-version:
+    name: Build QtTinySA on macOS for Intel
+    runs-on: macos-latest
+    env:
+      KEYCHAIN: job-${{ github.job }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python Dependence
+        run: pip install -r requirements.txt
+
+      - name: Build QtTinySA
+        run: pyinstaller --clean --noconfirm QtTinySA.spec
+
+      - name: Install Certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with: 
+          keychain: ${{ env.KEYCHAIN }}
+          p12-file-base64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.P12_PASSWORD }}
+          
+      - name: Codesign
+        env:
+          CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
+        run: |
+          codesign --timestamp --options=runtime -s "$CERTIFICATE_NAME" -v dist/QtTinySA.app  -f --deep
+      
+      - name: Package
+        run: |
+          brew install create-dmg
+          mkdir QtTinySA
+          ditto dist/QtTinySA.app QtTinySA/QtTinySA.app
+          ln -s /Applications QtTinySA/Applications
+          create-dmg QtTinySA-amd64.dmg QtTinySA
+
+      - name: Apple Notary
+        env:
+          CODESIGN_IDENT_USER: ${{ secrets.CODESIGN_IDENT_USER }}
+          CODESIGN_TEAM: ${{ secrets.CODESIGN_TEAM }}
+          CODESIGN_IDENT_PASS: ${{ secrets.CODESIGN_IDENT_PASS }}
+        run: |
+          xcrun notarytool store-credentials 'QtTinySA-Codesign-Password' --apple-id "${CODESIGN_IDENT_USER}" --team-id "${CODESIGN_TEAM}" --password "${CODESIGN_IDENT_PASS}"
+          xcrun notarytool submit "QtTinySA-amd64.dmg" --keychain-profile "QtTinySA-Codesign-Password" --wait
+          xcrun stapler staple QtTinySA-amd64.dmg
+
+      - name: Upload
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: QtTinySA-amd64.dmg
+          draft: false
+
+      - name: Delete keychain
+        if: always()
+        run: |
+          security delete-keychain "${{ env.KEYCHAIN }}".keychain
