@@ -19,18 +19,18 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install Python Dependence
-        run: pip install -r requirements.txt
-
-      - name: Build QtTinySA
-        run: pyinstaller --clean --noconfirm QtTinySA.spec
-
       - name: Install Certificate
         uses: apple-actions/import-codesign-certs@v2
         with: 
           keychain: ${{ env.KEYCHAIN }}
           p12-file-base64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           p12-password: ${{ secrets.P12_PASSWORD }}
+
+      - name: Install Python Dependence
+        run: pip install -r requirements.txt
+
+      - name: Build QtTinySA
+        run: pyinstaller --clean --noconfirm QtTinySA.spec
           
       - name: Codesign
         env:
@@ -82,18 +82,18 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install Python Dependence
-        run: pip install -r requirements.txt
-
-      - name: Build QtTinySA
-        run: pyinstaller --clean --noconfirm QtTinySA.spec
-
       - name: Install Certificate
         uses: apple-actions/import-codesign-certs@v2
         with: 
           keychain: ${{ env.KEYCHAIN }}
           p12-file-base64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           p12-password: ${{ secrets.P12_PASSWORD }}
+          
+      - name: Install Python Dependence
+        run: pip install -r requirements.txt
+
+      - name: Build QtTinySA
+        run: pyinstaller --clean --noconfirm QtTinySA.spec
           
       - name: Codesign
         env:
