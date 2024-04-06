@@ -1,25 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
-block_cipher = None
-
-
 a = Analysis(
     ['QtTinySA.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('QtTSAprefs.db', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=['pandas','setuptools', 'tk', 'wheel', 'zipp', 'pyyaml', 'packaging', 'altgraph', 'mkl', 'fortran', 'matlab'],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
 )
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure, a.zipped_data)
 
 exe = EXE(
     pyz,
@@ -39,11 +33,11 @@ exe = EXE(
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    codesign_identity=None,
+    codesign_identity='Developer ID Application: Fujian Province Beacon Rescue Service Center (N7A447KD6D)',
     entitlements_file=None,
 )
 app = BUNDLE(
-    coll,
+    exe,
     name='QtTinySA.app',
     icon='tinySA.ico',
     bundle_identifier='top.n03.tinysa',
