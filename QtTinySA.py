@@ -1010,7 +1010,7 @@ def dialogPrefs():
 
 
 def about():
-    message = ('TinySA Ultra GUI programme using Qt5 and PyQt\nAuthor: Ian Jefferson G4IXT\n\nVersion: {} \nConfig: {}'
+    message = ('TinySA Ultra GUI programme using Qt5 and PyQt\nAuthor: Ian Jefferson G4IXT\nRebuild: Bill BG5VGK\nVersion: {} \nConfig: {}'
                .format(app.applicationVersion(), config.dbpath))
     popUp(message, QMessageBox.Ok, QMessageBox.Information)
 
