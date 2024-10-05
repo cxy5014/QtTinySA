@@ -6,3 +6,4 @@ dist
 build
 .idea
 .DS_Store
+firmware_possible_issue.txt
